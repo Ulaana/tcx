@@ -1,8 +1,10 @@
 from lxml import etree
 from datetime import datetime
+import geopandas as gpd
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from shapely.geometry import Point
 
 def parse_tcx(file):
     ns = {'tcx': 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2',
@@ -50,6 +52,10 @@ def parse_tcx(file):
             total_cadence = run_cadence * 2
         else:
             total_cadence = None
+        if lon is not None and lat is not None:
+            geometry = Point(lon, lat)
+        else:
+            geometry = None
         if time and dist is not None:
             data.append({
                 'time': time,
@@ -59,11 +65,13 @@ def parse_tcx(file):
                 "lat": lat,
                 "lon": lon,
                 'run_cadence': run_cadence,
-                'total_cadence': total_cadence})
-    df = pd.DataFrame(data)
-    df = df.dropna(subset=['time', 'distance', 'elevation'])
-    df = df.sort_values(by='time').reset_index(drop=True)
-    return df
+                'total_cadence': total_cadence,
+                'geometry': geometry
+            })
+    gdf = gpd.GeoDataFrame(data, crs='EPSG:4326')
+    gdf = gdf.dropna(subset=['time', 'distance', 'elevation'])
+    gdf = gdf.sort_values(by='time').reset_index(drop=True)
+    return gdf
 
 def calculate_pace(df):
     df['time_diff'] = df['time'].diff().dt.total_seconds()
@@ -110,7 +118,6 @@ def smoothing(df, smoothing_window_size):
         else:
             cadence_avg = None
         cadence_smoothed.append(cadence_avg)
-
     df['pace_smoothed'] = pace_smoothed
     df['cadence_smoothed'] = cadence_smoothed
     return df
@@ -260,7 +267,7 @@ def plot_activities(segments):
     plt.show()
 
 tcx = parse_tcx("wypadek.tcx")
-tcx2 = parse_tcx("run.tcx")
-#print(tcx.to_string())
-df = detect_activities(tcx)
+tcx2 = parse_tcx("running.tcx")
+df = detect_activities(tcx2)
 plot_activities(df)
+
