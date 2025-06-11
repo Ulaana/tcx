@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from shapely.geometry import Point
 
+#PARSER
+
 def parse_tcx(file):
     ns = {'tcx': 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2',
           'ns3': 'http://www.garmin.com/xmlschemas/ActivityExtension/v2'}
@@ -73,6 +75,9 @@ def parse_tcx(file):
     gdf = gdf.sort_values(by='time').reset_index(drop=True)
     return gdf
 
+
+#ANALYSES
+
 def calculate_pace(df):
     df['time_diff'] = df['time'].diff().dt.total_seconds()
     df['dist_diff'] = df['distance'].diff()
@@ -80,9 +85,12 @@ def calculate_pace(df):
     for time, distance in zip(df['time_diff'], df['dist_diff']):
         if time and distance and distance > 0:
             pace = (time / 60) / (distance / 1000)
+            if pace < 20:
+                pace_data.append(pace)
+            else:
+                pace_data.append(None)
         else:
-            pace = None
-        pace_data.append(pace)
+            pace_data.append(None)
     df['pace'] = pace_data
     return df
 
@@ -231,6 +239,57 @@ def detect_activities(df, smoothing_window_size=5, walk_pace_threshold=9.0, cade
     segments = merging_segments(df, min_segment_duration)
     return segments
 
+def calculate_elevation_profile(df):
+    df['elevation_diff'] = df['elevation'].diff()
+
+    elevation_gain = []
+    for diff in df['elevation_diff']:
+        if diff > 0:
+            elevation_gain.append(diff)
+        else:
+            elevation_gain.append(0)
+    df['elevation_gain'] = elevation_gain
+    elevation_loss = []
+    for diff in df['elevation_diff']:
+        if diff < 0:
+            elevation_loss.append(-diff)
+        else:
+            elevation_loss.append(0)
+    df['elevation_loss'] = elevation_loss
+    return df
+
+
+def pace_hr_correlation(df):
+    result = {}
+
+    duration = (df['time'].iloc[-1] - df['time'].iloc[0]).total_seconds()
+    halfway = df['time'].iloc[0] + pd.to_timedelta(duration / 2, unit='s')
+    first_half = df[df['time'] <= halfway]
+    second_half = df[df['time'] > halfway]
+
+    result['mean_pace_fh'] = first_half['pace'].mean()
+    result['mean_pace_sh'] = second_half['pace'].mean()
+    result['mean_hr_fh'] = first_half['heart_rate'].mean()
+    result['mean_hr_sh'] = second_half['heart_rate'].mean()
+
+    if result['mean_pace_fh'] > result['mean_pace_sh']:
+        result['split_type'] = 'negative split (przyspieszenie)'
+    else:
+        result['split_type'] = 'positive split (zwolnienie)'
+
+    df_nonan = df.dropna(subset=['heart_rate'])
+    if not df_nonan.empty:
+        correlation = df_nonan['time'].astype(np.int64).corr(df_nonan['heart_rate'])
+    else:
+        correlation = None
+
+    result['correlation'] = correlation
+    return result
+
+
+#PLOTS, RAPORTS
+
+
 def plot_activities(segments):
     colors = {
         'bieg': '#0074D9',
@@ -263,11 +322,40 @@ def plot_activities(segments):
     ax.set_yticklabels(['Bieg', 'Chód', 'Postój'])
     ax.set_xlabel("Czas (minuty)")
     ax.set_xlim(0, (segments['end_time'].iloc[-1] - segments['start_time'].iloc[0]).total_seconds() / 60)
+    ax.set_title("Wykres aktywności w trakcie treningu")
     plt.tight_layout()
     plt.show()
 
-tcx = parse_tcx("wypadek.tcx")
-tcx2 = parse_tcx("running.tcx")
-df = detect_activities(tcx2)
-plot_activities(df)
+def plot_elevation_profile(df):
+    df['distance_km'] = df['distance'] / 1000
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(df['distance_km'], df['elevation'], color='brown', linewidth=1.5)
+    ax.set_xlabel("Dystans (km)")
+    ax.set_ylabel("Wysokość n.p.m. (m)")
+    ax.set_title("Profil wysokościowy trasy")
+    ax.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+def pace_hr_corr_report(results):
+    print(f"Analiza tempa i tętna podczas treningu:")
+    print(f"- Mediana tempa w pierwszej połowie: {results['mean_pace_fh']:.2f} min/km")
+    print(f"- Mediana tempa w drugiej połowie: {results['mean_pace_sh']:.2f} min/km")
+    print(f"- Średnie tętno w pierwszej połowie: {results['mean_hr_fh']:.1f} bpm")
+    print(f"- Średnie tętno w drugiej połowie: {results['mean_hr_sh']:.1f} bpm")
+    print(f"- Typ splitu: {results['split_type']}")
+    print( f"- Korelacja czasu z tętnem: {results['correlation']:.3f} (dodatnia korelacja - wzrost tętna/ujemna korelacja - spadek tętna)")
+
+
+if __name__ == "__main__":
+    tcx = parse_tcx("wypadek.tcx")
+    tcx2 = parse_tcx("prawie10.tcx")
+    calculate_pace(tcx2)
+    calculate_elevation_profile(tcx2)
+    plot_elevation_profile(tcx2)
+    result = pace_hr_correlation(tcx2)
+    pace_hr_corr_report(result)
+    df = detect_activities(tcx2)
+    plot_activities(df)
+
 
