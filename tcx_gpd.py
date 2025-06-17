@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from shapely.geometry import Point
 
+pd.set_option('display.max_columns', None)
+
 #PARSER
 
 def parse_tcx(file):
@@ -240,8 +242,8 @@ def detect_activities(df, smoothing_window_size=5, walk_pace_threshold=9.0, cade
     return segments
 
 def calculate_elevation_profile(df):
-    df['elevation_diff'] = df['elevation'].diff()
 
+    df['elevation_diff'] = df['elevation'].diff().fillna(0)
     elevation_gain = []
     for diff in df['elevation_diff']:
         if diff > 0:
@@ -257,7 +259,6 @@ def calculate_elevation_profile(df):
             elevation_loss.append(0)
     df['elevation_loss'] = elevation_loss
     return df
-
 
 def pace_hr_correlation(df):
     result = {}
@@ -285,6 +286,75 @@ def pace_hr_correlation(df):
 
     result['correlation'] = correlation
     return result
+
+def compare_trainings(df1, df2):
+    def compute_stats(df):
+        duration = (df['time'].iloc[-1] - df['time'].iloc[0]).total_seconds()
+        distance = df['distance'].iloc[-1] - df['distance'].iloc[0]
+        avg_pace = df['pace'].mean()
+        avg_hr = df['heart_rate'].mean()
+        max_hr = df['heart_rate'].max()
+        elevation_gain = df['elevation_gain'].sum()
+        elevation_loss = df['elevation_loss'].sum()
+        return {
+            'Czas trwania treningu (min)': duration / 60,
+            'Dystans (km)': distance / 1000,
+            'Średnie tempo (min/km)': avg_pace,
+            'Średnie tętno (bpm)': avg_hr,
+            'Max. tętno (bpm)': max_hr,
+            'Suma podbiegów [m]': elevation_gain,
+            'Suma zbiegów [m]': elevation_loss
+        }
+
+    stats = {
+        'Trening 1': compute_stats(df1),
+        'Trening 2': compute_stats(df2)
+    }
+
+    comparison_df = pd.DataFrame(stats)
+    comparison_df['Różnica'] = comparison_df['Trening 2'] - comparison_df['Trening 1']
+
+    def evaluation(row):
+        messages = []
+
+        if row.name == 'Dystans (km)':
+            if row['Różnica'] > 0:
+                messages.append("Dłuższy dystans (+)")
+            elif row['Różnica'] < 0:
+                messages.append("Krótszy dystans (-)")
+
+        elif row.name == 'Średnie tempo (min/km)':
+            if row['Różnica'] < 0:
+                messages.append("Lepsze tempo (+)")
+            elif row['Różnica'] > 0:
+                messages.append("Wolniejsze tempo (-)")
+
+        elif row.name == 'Średnie tętno (bpm)':
+            if row['Różnica'] < 0:
+                messages.append("Niższe tętno (+)")
+            elif row['Różnica'] > 0:
+                messages.append("Wyższe tętno (-)")
+
+        elif row.name == 'Max. tętno (bpm)':
+            if row['Różnica'] < 0:
+                messages.append("Niższe max tętno (+)")
+            elif row['Różnica'] > 0:
+                messages.append("Wyższe max tętno (-)")
+
+        elif row.name == 'Czas trwania treningu (min)':
+            if row['Różnica'] > 0:
+                messages.append("Dłuższy trening")
+            elif row['Różnica'] < 0:
+                messages.append("Krótszy trening")
+
+        return ', '.join(messages)
+
+    comparison_df['Ocena'] = comparison_df.apply(evaluation, axis=1)
+
+    print("Porównanie metryk treningowych:")
+    print(comparison_df.round(2))
+
+    return comparison_df
 
 
 #PLOTS, RAPORTS
@@ -339,23 +409,28 @@ def plot_elevation_profile(df):
 
 def pace_hr_corr_report(results):
     print(f"Analiza tempa i tętna podczas treningu:")
-    print(f"- Mediana tempa w pierwszej połowie: {results['mean_pace_fh']:.2f} min/km")
-    print(f"- Mediana tempa w drugiej połowie: {results['mean_pace_sh']:.2f} min/km")
+    print(f"- Średnia tempa w pierwszej połowie: {results['mean_pace_fh']:.2f} min/km")
+    print(f"- Średnia tempa w drugiej połowie: {results['mean_pace_sh']:.2f} min/km")
     print(f"- Średnie tętno w pierwszej połowie: {results['mean_hr_fh']:.1f} bpm")
     print(f"- Średnie tętno w drugiej połowie: {results['mean_hr_sh']:.1f} bpm")
     print(f"- Typ splitu: {results['split_type']}")
-    print( f"- Korelacja czasu z tętnem: {results['correlation']:.3f} (dodatnia korelacja - wzrost tętna/ujemna korelacja - spadek tętna)")
+    print( f"- Korelacja tempa z tętnem: {results['correlation']:.3f} (dodatnia korelacja - wzrost tętna/ujemna korelacja - spadek tętna)")
 
 
 if __name__ == "__main__":
-    tcx = parse_tcx("wypadek.tcx")
-    tcx2 = parse_tcx("prawie10.tcx")
+    tcx1 = parse_tcx("trening1.tcx")
+    tcx2 = parse_tcx("trening2.tcx")
+    tcx3 = parse_tcx("wypadek.tcx")
+    calculate_pace(tcx1)
     calculate_pace(tcx2)
+    calculate_elevation_profile(tcx1)
     calculate_elevation_profile(tcx2)
-    plot_elevation_profile(tcx2)
-    result = pace_hr_correlation(tcx2)
+    compare_trainings(tcx1, tcx2)
+    calculate_elevation_profile(tcx3)
+    plot_elevation_profile(tcx3)
+    result = pace_hr_correlation(tcx1)
     pace_hr_corr_report(result)
-    df = detect_activities(tcx2)
+    df = detect_activities(tcx1)
     plot_activities(df)
 
 
