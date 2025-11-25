@@ -127,58 +127,94 @@ def smoothing(df, smoothing_window_size):
     df['cadence_smoothed'] = cadence_smoothed
     return df
 
-def calculate_pace_numpy(df):
-    time_diff = df['time'].diff().dt.total_seconds().to_numpy()
-    dist_diff = df['distance'].diff().to_numpy()
+def parse_tcx_numpy(file):
+    ns = {
+        'tcx': 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2',
+        'ns3': 'http://www.garmin.com/xmlschemas/ActivityExtension/v2'
+    }
 
+    tree = etree.parse(file)
+    trackpoints = tree.findall('.//tcx:Trackpoint', ns)
+
+    data = []
+    for trackpoint in trackpoints:
+        time_elem = trackpoint.find('tcx:Time', ns)
+        dist_elem = trackpoint.find('tcx:DistanceMeters', ns)
+        ele_elem = trackpoint.find('tcx:AltitudeMeters', ns)
+        if time_elem is None or dist_elem is None or ele_elem is None:
+            continue
+        try:
+            time = datetime.fromisoformat(time_elem.text.replace("Z", "+00:00")).timestamp()
+        except:
+            continue
+        distance = float(dist_elem.text)
+        elevation = float(ele_elem.text)
+
+        hr_elem = trackpoint.find('tcx:HeartRateBpm/tcx:Value', ns)
+        hr = float(hr_elem.text) if hr_elem is not None else np.nan
+
+        cad_elem = trackpoint.find('tcx:Extensions/ns3:TPX/ns3:RunCadence', ns)
+        cadence = float(cad_elem.text)*2 if cad_elem is not None else np.nan
+
+        lat_elem = trackpoint.find('tcx:Position/tcx:LatitudeDegrees', ns)
+        lon_elem = trackpoint.find('tcx:Position/tcx:LongitudeDegrees', ns)
+        lat = float(lat_elem.text) if lat_elem is not None else np.nan
+        lon = float(lon_elem.text) if lon_elem is not None else np.nan
+
+        data.append([time, distance, elevation, hr, cadence, lat, lon, np.nan, np.nan, np.nan])
+
+    return np.array(data, dtype=np.float64)
+
+def calculate_pace_numpy(array):
+    time_diff = np.diff(array[:,0])
+    dist_diff = np.diff(array[:,1])
     with np.errstate(divide='ignore', invalid='ignore'):
-        pace = (time_diff / 60) / (dist_diff / 1000)
+        pace = time_diff * (1000/60) / dist_diff
         pace[(dist_diff <= 0) | (pace > 20)] = np.nan
+    pace = np.insert(pace, 0, np.nan)
+    array[:,7] = pace
+    return array
 
-    df['pace_np'] = pace
-    return df
 
-def smoothing_numpy(df, smoothing_window_size):
-    pace = df['pace_np'].to_numpy()
-    cadence = df['total_cadence'].to_numpy()
+def smoothing_numpy(array, window_size):
+    def moving_window(arr, window):
+        mask = np.isfinite(arr)
+        arr_filled = np.nan_to_num(arr, nan=0.0)
+        cumsum = np.convolve(arr_filled, np.ones(window), mode='same')
+        counts = np.convolve(mask.astype(float), np.ones(window), mode='same')
+        smoothed = np.divide(cumsum, counts, out=np.full_like(cumsum, np.nan), where=counts!=0)
+        smoothed[counts == 0] = np.nan
+        return smoothed
 
-    def moving_window(array, window):
-        mask = np.isfinite(array)
-        array_filled = np.nan_to_num(array, nan=0.0)
-        cumsum = np.convolve(array_filled, np.ones(window), mode='same')
-        counts = np.convolve(mask.astype(int), np.ones(window), mode='same')
-        avg = cumsum / counts
-        avg[counts == 0] = np.nan
-        return avg
+    array[:,8] = moving_window(array[:,7], window_size)
+    array[:,9] = moving_window(array[:,4], window_size)
+    return array
 
-    pace_smoothed = moving_window(pace, smoothing_window_size)
-    cadence_smoothed = moving_window(cadence, smoothing_window_size)
 
-    df['pace_smoothed_np'] = pace_smoothed
-    df['cadence_smoothed_np'] = cadence_smoothed
-    return df
-
-def comparing(df, smoothing_window_size=5):
-    df_copy1 = df.copy()
-    df_copy2 = df.copy()
-
+def comparing(file, smoothing_window_size=5):
     start1 = time.perf_counter()
-    df_copy1 = calculate_pace(df_copy1)
-    df_copy1 = smoothing(df_copy1, smoothing_window_size)
+    gdf = parse_tcx(file)
+    gdf = calculate_pace(gdf)
+    gdf = smoothing(gdf, smoothing_window_size)
     end1 = time.perf_counter()
 
     start2 = time.perf_counter()
-    df_copy2 = calculate_pace_numpy(df_copy2)
-    df_copy2 = smoothing_numpy(df_copy2, smoothing_window_size)
+    array = parse_tcx_numpy(file)
+    array = calculate_pace_numpy(array)
+    array = smoothing_numpy(array, smoothing_window_size)
     end2 = time.perf_counter()
 
-    print(f"Czas obliczeń (oryginał): {end1 - start1:.6f} s")
-    print(f"Czas obliczeń (numpy): {end2 - start2:.6f} s")
+    time1 = end1 - start1
+    time2 = end2 - start2
 
-    return df_copy1, df_copy2
+    print(f"Czas obliczeń (oryginalna): {time1:.6f} s")
+    print(f"Czas obliczeń (NumPy): {time2:.6f} s")
+    print(f"Różnica w czasie: {time1/time2:.2f}x szybciej")
+
+    return gdf, array
 
 if __name__ == "__main__":
-    gdf = parse_tcx("prawie10.tcx")
-    df1, df2 = comparing(gdf)
-    #print(df1)
-    #print(df2)
+    file = ("prawie10.tcx")
+    gdf, array = comparing(file)
+    #print(gdf)
+    #print(array)
