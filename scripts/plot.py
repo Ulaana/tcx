@@ -56,14 +56,14 @@ def plot(files):
     plt.plot(sizes, numpy_times, marker='s', linestyle='-', color='#2980b9', linewidth=2.5, label='NumPy')
     plt.title('Porównanie czasu analizy na plikach TCX', fontsize=14, pad=15)
     plt.xlabel('Liczba punktów w pliku TCX', fontsize=12)
-    plt.ylabel('Czas wykonania operacji analitycznych (s)', fontsize=12)
+    plt.ylabel('Czas wykonania operacji (s)', fontsize=12)
     plt.xscale('log')
     plt.xticks(sizes, [f"{s:,}".replace(',', ' ') for s in sizes])
     plt.grid(True, which="both", linestyle='--', alpha=0.6)
     plt.legend(fontsize=12, loc='upper left')
     plt.tight_layout()
 
-    plt.savefig('../wykres_rzeczywiste_tcx.png', dpi=300)
+    plt.savefig('../wykres.png', dpi=300)
     plt.show()
 
 if __name__ == "__main__":
