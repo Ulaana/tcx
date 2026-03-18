@@ -2,8 +2,8 @@ from tcxreader.tcxreader import TCXReader
 import numpy as np
 import time
 import matplotlib.pyplot as plt
-from tcx_python import bbox, total_distance, elevation_gain, avg_hr, hr_zones, elevation_hr
-from tcx_numpy import bbox_np, total_distance_np, elevation_gain_np, avg_hr_np, hr_zones_np, elevation_hr_np
+from tcx_python import bbox, total_distance, elevation_gain, avg_hr, hr_zones, elevation_hr, perf_eff
+from tcx_numpy import bbox_np, total_distance_np, elevation_gain_np, avg_hr_np, hr_zones_np, elevation_hr_np, perf_eff_np
 
 def parser(tcx_file_path):
     tcx_reader = TCXReader()
@@ -27,6 +27,7 @@ def parser(tcx_file_path):
     avg_hr(points_list)
     hr_zones(points_list)
     elevation_hr(points_list)
+    perf_eff(points_list)
     time_p = time.perf_counter() - start_p
 
     start_n = time.perf_counter()
@@ -36,6 +37,7 @@ def parser(tcx_file_path):
     avg_hr_np(points_arr)
     hr_zones_np(points_arr)
     elevation_hr_np(points_arr)
+    perf_eff_np(points_arr)
     time_n = time.perf_counter() - start_n
 
     return points, time_p, time_n

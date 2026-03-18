@@ -1,12 +1,11 @@
 from tcxreader.tcxreader import TCXReader
 import numpy as np
-import dask.array as da
-import dask
 import time
 
-from tcx_python import bbox, total_distance, elevation_gain, avg_hr, hr_zones, elevation_hr
-from tcx_numpy import bbox_np, total_distance_np, elevation_gain_np, avg_hr_np, hr_zones_np, elevation_hr_np
-from tcx_dask import bbox_da, total_distance_da, elevation_gain_da, avg_hr_da, hr_zones_da, elevation_hr_da
+from tcx_python import bbox, total_distance, elevation_gain, avg_hr, hr_zones, elevation_hr, perf_eff
+from tcx_numpy import bbox_np, total_distance_np, elevation_gain_np, avg_hr_np, hr_zones_np, elevation_hr_np, \
+    perf_eff_np
+
 
 def benchmark(tcx_file_path):
     print(f"Wczytywanie pliku TCX: {tcx_file_path}")
@@ -75,6 +74,14 @@ def benchmark(tcx_file_path):
     ele_hr_n = elevation_hr_np(points_arr)
     time_ele_hr_n = time.perf_counter() - start
 
+    start = time.perf_counter()
+    perf_eff_p = perf_eff(points_list)
+    time_perf_eff_p = time.perf_counter() - start
+
+    start = time.perf_counter()
+    perf_eff_n = perf_eff_np(points_arr)
+    time_perf_eff_n = time.perf_counter() - start
+
     print("Wyniki analizy:")
     print(f"Dystans: {dist_n / 1000:.2f} km | Przewyższenia: {ele_gain_n:.0f} m | Średnie tętno: {hr_n:.0f} BPM")
     print(f"Czas w strefach HR (Z1-Z5): {zones_n}\n")
@@ -86,6 +93,8 @@ def benchmark(tcx_file_path):
     print(f"| Średnie tętno | {time_hr_p:.6f} | {time_hr_n:.6f} | {time_hr_p / time_hr_n:.2f}x |")
     print(f"| HR Zones | {time_zones_p:.6f} | {time_zones_n:.6f} | {time_zones_p / time_zones_n:.2f}x |")
     print(f"| Średnie tętno na podjazdach | {time_ele_hr_p:.6f} | {time_ele_hr_n:.6f} | {time_ele_hr_p / time_ele_hr_n:.2f}x |")
+    print(f"| Perfomance Efficiency | {time_perf_eff_p:.6f} | {time_perf_eff_n:.6f} | {time_perf_eff_p / time_perf_eff_n:.2f}x |")
+
 
 if __name__ == "__main__":
     benchmark("../data/plik_1000000.tcx")
