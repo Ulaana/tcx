@@ -1,11 +1,10 @@
-from tcxreader.tcxreader import TCXReader
-import numpy as np
 import time
 import json
 
 from tcx_python import bbox, total_distance, elevation_gain, avg_hr, hr_zones, elevation_hr, perf_eff
 from tcx_numpy import bbox_np, total_distance_np, elevation_gain_np, avg_hr_np, hr_zones_np, elevation_hr_np, \
     perf_eff_np
+from tcx_parser import parser_py, parser_np
 
 
 def benchmark(files, output_file="../benchmark.json"):
@@ -13,21 +12,9 @@ def benchmark(files, output_file="../benchmark.json"):
 
     for file in files:
         print(f"Przetwarzanie pliku: {file}...")
-        tcx_reader = TCXReader()
-        tcx = tcx_reader.read(file)
-
-        points_list = []
-        for trackpoint in tcx.trackpoints:
-            lat = trackpoint.latitude if trackpoint.latitude else 0.0
-            lon = trackpoint.longitude if trackpoint.longitude else 0.0
-            if lat != 0.0 and lon != 0.0:
-                ele = trackpoint.elevation if trackpoint.elevation else 0.0
-                hr = trackpoint.hr_value if trackpoint.hr_value else 0.0
-                cadence = trackpoint.cadence if trackpoint.cadence else 0.0
-                points_list.append((lat, lon, ele, hr, cadence))
-
+        points_list = parser_py(file)
         points = len(points_list)
-        points_arr = np.array(points_list)
+        points_arr = parser_np(file)
 
         start_p = time.perf_counter()
         bbox(points_list)
@@ -69,7 +56,6 @@ if __name__ == "__main__":
         "../data/plik_10000.tcx",
         "../data/plik_100000.tcx",
         "../data/plik_500000.tcx",
-        "../data/plik_1000000.tcx",
-        "../data/plik_10000000.tcx",
+        "../data/plik_1000000.tcx"
     ]
     benchmark(files)

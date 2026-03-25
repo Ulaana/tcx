@@ -24,9 +24,9 @@ def plot(file):
     plt.legend(fontsize=12, loc='upper left')
     plt.tight_layout()
 
-    plt.savefig('../wykres2.png', dpi=300)
+    plt.savefig('../wykres.png', dpi=300)
     plt.show()
 
 
 if __name__ == "__main__":
-    plot("benchmark.json")
+    plot("../benchmark.json")
