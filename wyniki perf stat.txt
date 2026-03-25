@@ -1,0 +1,23 @@
+wyniki perf stat dla NumPy (5 testów):
+  10107279047      cache-references:u                                                      ( +-  1.74% )
+    792895532      cache-misses:u                   #    7.84% of all cache refs           ( +- 11.76% )
+  84416294172      L1-dcache-loads:u                                                       ( +-  0.38% )
+   2945840502      L1-dcache-load-misses:u          #    3.49% of all L1-dcache accesses   ( +-  1.30% )
+
+            51.803 +- 0.987 seconds time elapsed  ( +-  1.91% )
+
+wyniki perf stat dla Pythona (5 testów):
+   9906376782      cache-references:u                                                      ( +-  1.48% )
+    634083041      cache-misses:u                   #    6.40% of all cache refs           ( +- 10.88% )
+  93717939792      L1-dcache-loads:u                                                       ( +-  0.23% )
+   2928369521      L1-dcache-load-misses:u          #    3.12% of all L1-dcache accesses   ( +-  0.60% )
+
+            52.70 +- 1.60 seconds time elapsed  ( +-  3.04% )
+
+wyniki perf stat dla interpretera (5 testów):
+      2029189      cache-references:u                                                      ( +-  2.00% )
+       439078      cache-misses:u                   #   21.64% of all cache refs           ( +-  5.25% )
+     14840897      L1-dcache-loads:u                                                       ( +-  0.19% )
+       745118      L1-dcache-load-misses:u          #    5.02% of all L1-dcache accesses   ( +-  0.37% )
+
+            0.013411 +- 0.000689 seconds time elapsed  ( +-  5.14% )
