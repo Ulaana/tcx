@@ -1,5 +1,5 @@
 import numpy as np
-from tcxreader.tcxreader import TCXReader
+from scripts.tcx_parser import parser_np
 
 R = 6371000
 
@@ -96,20 +96,7 @@ def perf_eff_np(points, weight_kg=75.0):
 
 
 if __name__ == "__main__":
-    tcx_reader = TCXReader()
-    tcx = tcx_reader.read("/mnt/d/personal/tcx/data/plik_10000000.tcx")
-
-    points_list = []
-    for trackpoint in tcx.trackpoints:
-        lat = trackpoint.latitude if trackpoint.latitude else 0.0
-        lon = trackpoint.longitude if trackpoint.longitude else 0.0
-        if lat != 0.0 and lon != 0.0:
-            ele = trackpoint.elevation if trackpoint.elevation else 0.0
-            hr = trackpoint.hr_value if trackpoint.hr_value else 0.0
-            cadence = trackpoint.cadence if trackpoint.cadence else 0.0
-            points_list.append((lat, lon, ele, hr, cadence))
-
-    points_arr = np.array(points_list)
+    points_arr = parser_np("/mnt/d/personal/tcx/data/plik_1000000.tcx")
     bbox_np(points_arr)
     total_distance_np(points_arr)
     elevation_gain_np(points_arr)

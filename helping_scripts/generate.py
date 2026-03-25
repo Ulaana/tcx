@@ -3,7 +3,7 @@ import math
 import random
 
 
-def generate(filename="data/plik_10000000.tcx", num_points=10_000_000):
+def generate(filename="data/plik_1000000.tcx", num_points=100_000):
     start_time = datetime.datetime.now(datetime.timezone.utc)
     center_lat = 52.0
     center_lon = 19.0
