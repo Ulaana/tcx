@@ -3,17 +3,17 @@ import math
 R = 6371000
 
 
-def bbox(points):
+def bbox(latitudes, longitudes):
     min_lat, min_lon = float('inf'), float('inf')
     max_lat, max_lon = float('-inf'), float('-inf')
-    for p in points:
-        lat, lon = p[0], p[1]
+
+    for lat, lon in zip(latitudes, longitudes):
         if lat < min_lat: min_lat = lat
         if lat > max_lat: max_lat = lat
         if lon < min_lon: min_lon = lon
         if lon > max_lon: max_lon = lon
-    return (min_lat, min_lon, max_lat, max_lon)
 
+    return (min_lat, min_lon, max_lat, max_lon)
 
 def distance(lat1, lon1, lat2, lon2):
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
@@ -27,40 +27,36 @@ def distance(lat1, lon1, lat2, lon2):
     return R * c
 
 
-def total_distance(points):
+def total_distance(latitudes, longitudes):
     total_distance = 0.0
-    for i in range(1, len(points)):
-        lat1, lon1 = points[i - 1][0], points[i - 1][1]
-        lat2, lon2 = points[i][0], points[i][1]
-        total_distance += distance(lat1, lon1, lat2, lon2)
+    for i in range(1, len(latitudes)):
+        total_distance += distance(latitudes[i - 1], longitudes[i - 1], latitudes[i], longitudes[i])
     return total_distance
 
 
-def elevation_gain(points):
+def elevation_gain(elevations):
     gain = 0.0
-    for i in range(1, len(points)):
-        diff = points[i][2] - points[i - 1][2]
+    for i in range(1, len(elevations)):
+        diff = elevations[i] - elevations[i - 1]
         if diff > 0:
             gain += diff
     return gain
 
 
-def avg_hr(points):
+def avg_hr(heart_rates):
     total_hr = 0
     count = 0
-    for p in points:
-        hr = p[3]
+    for hr in heart_rates:
         if hr > 0:
             total_hr += hr
             count += 1
     return total_hr / count if count > 0 else 0
 
 
-def hr_zones(points, hr_max=185):
+def hr_zones(heart_rates, hr_max=185):
     z1_min, z2_min, z3_min, z4_min, z5_min = [hr_max * p for p in (0.5, 0.6, 0.7, 0.8, 0.9)]
     zones = [0, 0, 0, 0, 0]
-    for p in points:
-        hr = p[3]
+    for hr in heart_rates:
         if hr >= z5_min:
             zones[4] += 1
         elif hr >= z4_min:
@@ -74,14 +70,14 @@ def hr_zones(points, hr_max=185):
     return zones
 
 
-def elevation_hr(points):
+def elevation_hr(elevations, heart_rates):
     climb_hr_total = 0
     climb_count = 0
     descent_hr_total = 0
     descent_count = 0
-    for i in range(1, len(points)):
-        ele_diff = points[i][2] - points[i - 1][2]
-        hr = points[i][3]
+    for i in range(1, len(elevations)):
+        ele_diff = elevations[i] - elevations[i - 1]
+        hr = heart_rates[i]
         if hr > 0:
             if ele_diff > 0:
                 climb_hr_total += hr
@@ -95,21 +91,20 @@ def elevation_hr(points):
     return avg_climb, avg_descent
 
 
-def perf_eff(points, weight=75.0):
+def perf_eff(latitudes, longitudes, elevations, heart_rates, times, weight=75.0):
     delta_times = []
     distances = []
     speeds = []
     grades = []
     powers = []
 
-    for i in range(1, len(points)):
-        p1, p2 = points[i - 1], points[i]
-        delta_time = p2[4] - p1[4]
+    for i in range(1, len(latitudes)):
+        delta_time = times[i] - times[i - 1]
         if delta_time <= 0:
             delta_time = 1.0
 
-        dist = distance(p1[0], p1[1], p2[0], p2[1])
-        ele_diff = p2[2] - p1[2]
+        dist = distance(latitudes[i - 1], longitudes[i - 1], latitudes[i], longitudes[i])
+        ele_diff = elevations[i] - elevations[i - 1]
         speed = dist / delta_time
         grade = (ele_diff / dist) if dist > 0 else 0
         power = (weight * 9.81 * speed * grade) + (0.5 * weight * speed)
@@ -137,7 +132,8 @@ def perf_eff(points, weight=75.0):
         avg_hr = sum(hr) / len(hr) if hr else 1
         return avg_p / avg_hr
 
-    hr_data = [p[3] for p in points[1:]]
+    hr_data = heart_rates[1:]
+
     ef_1 = calculate_ef(powers[:half], hr_data[:half])
     ef_2 = calculate_ef(powers[half:], hr_data[half:])
     decoupling = ((ef_1 - ef_2) / ef_1 * 100) if ef_2 > 0 else 0

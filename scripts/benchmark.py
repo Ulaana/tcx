@@ -1,10 +1,9 @@
 import time
 import json
 
-from tcx_python import bbox, total_distance, elevation_gain, avg_hr, hr_zones, elevation_hr, perf_eff
-from tcx_numpy import bbox_np, total_distance_np, elevation_gain_np, avg_hr_np, hr_zones_np, elevation_hr_np, \
-    perf_eff_np
-from tcx_parser import parser_py, parser_np
+from tcx_python import *
+from tcx_numpy import *
+from tcx_parser import *
 
 
 def benchmark(files, output_file="../benchmark.json"):
@@ -12,28 +11,28 @@ def benchmark(files, output_file="../benchmark.json"):
 
     for file in files:
         print(f"Przetwarzanie pliku: {file}...")
-        points_list = parser_py(file)
-        points = len(points_list)
-        points_arr = parser_np(file)
+        latitudes, longitudes, elevations, heart_rates, times, cadences = parser_py(file)
+        points = len(latitudes)
+        latitudes_np, longitudes_np, elevations_np, heart_rates_np, times_np, cadences_np = parser_np(file)
 
         start_p = time.perf_counter()
-        bbox(points_list)
-        total_distance(points_list)
-        elevation_gain(points_list)
-        avg_hr(points_list)
-        hr_zones(points_list)
-        elevation_hr(points_list)
-        perf_eff(points_list)
+        bbox(latitudes, longitudes)
+        total_distance(latitudes, longitudes)
+        elevation_gain(elevations)
+        avg_hr(heart_rates)
+        hr_zones(heart_rates)
+        elevation_hr(elevations, heart_rates)
+        perf_eff(latitudes, longitudes, elevations, heart_rates, times)
         time_p = time.perf_counter() - start_p
 
         start_n = time.perf_counter()
-        bbox_np(points_arr)
-        total_distance_np(points_arr)
-        elevation_gain_np(points_arr)
-        avg_hr_np(points_arr)
-        hr_zones_np(points_arr)
-        elevation_hr_np(points_arr)
-        perf_eff_np(points_arr)
+        bbox_np(latitudes_np, longitudes_np)
+        total_distance_np(latitudes_np, longitudes_np)
+        elevation_gain_np(elevations_np)
+        avg_hr_np(heart_rates_np)
+        hr_zones_np(heart_rates_np)
+        elevation_hr_np(elevations_np, heart_rates_np)
+        perf_eff_np(latitudes_np, longitudes_np, elevations_np, heart_rates_np, times_np)
         time_n = time.perf_counter() - start_n
 
         results.append({
