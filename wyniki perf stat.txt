@@ -58,7 +58,27 @@ Wyniki:
 
              51.45 +- 1.12 seconds time elapsed  ( +-  2.18% )
 
-3) 5 testów (100 tysięcy punktów) py -> np
+3) 5 testów, drugie podejście innego dnia (milion punktów) np -> py
+
+ Performance counter stats for 'python np_test.py' (5 runs):
+
+       14643882257      cache-references:u                                                      ( +-  0.24% )
+         460128202      cache-misses:u                   #    3.14% of all cache refs           ( +-  6.39% )
+       70058047577      L1-dcache-loads:u                                                       ( +-  0.10% )
+        3068624260      L1-dcache-load-misses:u          #    4.38% of all L1-dcache accesses   ( +-  1.08% )
+
+            59.012 +- 0.873 seconds time elapsed  ( +-  1.48% )
+
+ Performance counter stats for 'python py_test.py' (5 runs):
+
+       15495996824      cache-references:u                                                      ( +-  0.48% )
+         722901878      cache-misses:u                   #    4.67% of all cache refs           ( +- 10.13% )
+       87069837103      L1-dcache-loads:u                                                       ( +-  0.10% )
+        3541993752      L1-dcache-load-misses:u          #    4.07% of all L1-dcache accesses   ( +-  0.67% )
+
+             81.50 +- 8.00 seconds time elapsed  ( +-  9.82% )
+
+4) 5 testów (100 tysięcy punktów) py -> np
 
  Performance counter stats for 'python np_test.py' (5 runs):
 
@@ -78,7 +98,7 @@ Wyniki:
 
              5.213 +- 0.248 seconds time elapsed  ( +-  4.75% )
 
-4) sam interpreter
+5) sam interpreter
 
  Performance counter stats for 'python -c pass' (5 runs):
 
