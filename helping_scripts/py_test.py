@@ -153,11 +153,13 @@ def perf_eff(latitudes, longitudes, elevations, heart_rates, times, weight=75.0)
 
 
 if __name__ == "__main__":
+    i = 3
     latitudes, longitudes, elevations, heart_rates, times, cadences = parser_py("/mnt/d/personal/tcx/data/plik_1000000.tcx")
-    bbox(latitudes, longitudes)
-    total_distance(latitudes, longitudes)
-    elevation_gain(elevations)
-    avg_hr(heart_rates)
-    hr_zones(heart_rates, hr_max=185)
-    elevation_hr(elevations, heart_rates)
-    perf_eff(latitudes, longitudes, elevations, heart_rates, times)
+    for _ in range(i):
+        bbox(latitudes, longitudes)
+        total_distance(latitudes, longitudes)
+        elevation_gain(elevations)
+        avg_hr(heart_rates)
+        hr_zones(heart_rates, hr_max=185)
+        elevation_hr(elevations, heart_rates)
+        perf_eff(latitudes, longitudes, elevations, heart_rates, times)
