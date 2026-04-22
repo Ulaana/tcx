@@ -4,7 +4,10 @@ import numpy as np
 
 
 def parser_py(file):
-    ns = {'tcx': 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2'}
+    ns = {
+        'tcx': 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2',
+        'ns3': 'http://www.garmin.com/xmlschemas/ActivityExtension/v2'
+    }
     latitudes, longitudes, elevations, heart_rates, times, cadences = [], [], [], [], [], []
     tree = etree.parse(file)
 
@@ -15,7 +18,7 @@ def parser_py(file):
             lon_elem = pos.find('tcx:LongitudeDegrees', namespaces=ns)
             if lat_elem is not None and lon_elem is not None:
                 time_elem = tp.find('tcx:Time', namespaces=ns)
-                if time_elem is not None:
+                if time_elem is not None and time_elem.text:
                     time_str = time_elem.text.replace('Z', '+00:00')
                     times.append(datetime.fromisoformat(time_str).timestamp())
                 else:
@@ -26,7 +29,7 @@ def parser_py(file):
                 elevations.append(float(ele_elem.text) if ele_elem is not None else 0.0)
                 hr_elem = tp.find('.//tcx:HeartRateBpm/tcx:Value', namespaces=ns)
                 heart_rates.append(float(hr_elem.text) if hr_elem is not None else 0.0)
-                cad_elem = tp.find('tcx:Cadence', namespaces=ns)
+                cad_elem = tp.find('.//ns3:RunCadence', namespaces=ns)
                 cadences.append(float(cad_elem.text) if cad_elem is not None else 0.0)
 
     return latitudes, longitudes, elevations, heart_rates, times, cadences
@@ -34,6 +37,7 @@ def parser_py(file):
 
 def parser_np(file):
     ns = "{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}"
+    ns3 = "{http://www.garmin.com/xmlschemas/ActivityExtension/v2}"
     tree = etree.parse(file)
     trackpoints = tree.findall(f'.//{ns}Trackpoint')
     n = len(trackpoints)
@@ -62,7 +66,7 @@ def parser_np(file):
                 elevations[i] = float(ele_str) if ele_str is not None else np.nan
                 hr_str = tp.findtext(f'.//{ns}HeartRateBpm/{ns}Value')
                 heart_rates[i] = float(hr_str) if hr_str is not None else np.nan
-                cad_str = tp.findtext(f'{ns}Cadence')
+                cad_str = tp.findtext(f'.//{ns3}RunCadence')
                 cadences[i] = float(cad_str) if cad_str is not None else np.nan
                 i += 1
 

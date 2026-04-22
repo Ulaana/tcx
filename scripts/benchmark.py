@@ -16,23 +16,23 @@ def benchmark(files, output_file="../benchmark.json"):
         latitudes_np, longitudes_np, elevations_np, heart_rates_np, times_np, cadences_np = parser_np(file)
 
         start_p = time.perf_counter()
-        bbox(latitudes, longitudes)
         total_distance(latitudes, longitudes)
         elevation_gain(elevations)
         avg_hr(heart_rates)
         hr_zones(heart_rates)
         elevation_hr(elevations, heart_rates)
         perf_eff(latitudes, longitudes, elevations, heart_rates, times)
+        activity_segments(latitudes, longitudes, times, cadences)
         time_p = time.perf_counter() - start_p
 
         start_n = time.perf_counter()
-        bbox_np(latitudes_np, longitudes_np)
         total_distance_np(latitudes_np, longitudes_np)
         elevation_gain_np(elevations_np)
         avg_hr_np(heart_rates_np)
         hr_zones_np(heart_rates_np)
         elevation_hr_np(elevations_np, heart_rates_np)
         perf_eff_np(latitudes_np, longitudes_np, elevations_np, heart_rates_np, times_np)
+        activity_segments_np(latitudes_np, longitudes_np, times_np, cadences_np)
         time_n = time.perf_counter() - start_n
 
         results.append({

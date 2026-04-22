@@ -1,19 +1,8 @@
 import math
+from datetime import datetime
 
 R = 6371000
 
-
-def bbox(latitudes, longitudes):
-    min_lat, min_lon = float('inf'), float('inf')
-    max_lat, max_lon = float('-inf'), float('-inf')
-
-    for lat, lon in zip(latitudes, longitudes):
-        if lat < min_lat: min_lat = lat
-        if lat > max_lat: max_lat = lat
-        if lon < min_lon: min_lon = lon
-        if lon > max_lon: max_lon = lon
-
-    return (min_lat, min_lon, max_lat, max_lon)
 
 def distance(lat1, lon1, lat2, lon2):
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
@@ -144,3 +133,109 @@ def perf_eff(latitudes, longitudes, elevations, heart_rates, times, weight=75.0)
         "Współczynnik wydajności (druga połowa treningu)": round(ef_2, 3),
         "Aerobic decoupling": round(decoupling, 2)
     }
+
+
+def distances(latitudes, longitudes):
+    dists = []
+    for i in range(len(latitudes) - 1):
+        phi1 = math.radians(latitudes[i])
+        phi2 = math.radians(latitudes[i + 1])
+        delta_phi = math.radians(latitudes[i + 1] - latitudes[i])
+        delta_lambda = math.radians(longitudes[i + 1] - longitudes[i])
+
+        a = (math.sin(delta_phi / 2.0) ** 2 +
+             math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2.0) ** 2)
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        dists.append(R * c)
+
+    return dists
+
+
+def activity_segments(latitudes, longitudes, times, cadences, min_duration=5):
+    n = len(times)
+
+    dist_array = distances(latitudes, longitudes)
+    delta_time = []
+    for i in range(n - 1):
+        dt = times[i + 1] - times[i]
+        delta_time.append(dt if dt != 0 else 1.0)
+    speeds = [0.0]
+    for i in range(n - 1):
+        speeds.append(dist_array[i] / delta_time[i])
+
+    states = []
+    for i in range(n):
+        speed = speeds[i]
+        cadence = cadences[i]
+        state = 0
+        if (0.5 < speed <= 2.2) or (0 < cadence < 65):
+            state = 1
+        if speed > 2.2 and cadence >= 65:
+            state = 2
+        if 0.5 < speed < 3.0 and cadence == 0:
+            state = 0
+        states.append(state)
+
+    split_indices = [0]
+    for i in range(1, n):
+        if states[i] != states[i - 1]:
+            split_indices.append(i)
+    split_indices.append(n)
+
+    segments = []
+    for i in range(len(split_indices) - 1):
+        start_index = split_indices[i]
+        end_index = split_indices[i + 1]
+        state = states[start_index]
+        segments.append({
+            'state': state,
+            'start_idx': start_index,
+            'end_idx': end_index,
+            'duration': end_index - start_index
+        })
+
+    filtered_segments = []
+    for segment in segments:
+        if segment['duration'] < min_duration and len(filtered_segments) > 0:
+            segment['state'] = filtered_segments[-1]['state']
+        filtered_segments.append(segment)
+
+    final_segments = []
+    for segment in filtered_segments:
+        if not final_segments:
+            final_segments.append(segment)
+        elif final_segments[-1]['state'] == segment['state']:
+            final_segments[-1]['end_idx'] = segment['end_idx']
+            final_segments[-1]['duration'] += segment['duration']
+        else:
+            final_segments.append(segment)
+
+    state_names = {0: "Postój (Idle)", 1: "Chód (Walk)", 2: "Bieg (Run)"}
+    results = []
+
+    for segment in final_segments:
+        start_index = segment['start_idx']
+        end_index = segment['end_idx'] - 1
+
+        if start_index >= end_index:
+            continue
+
+        start_time_str = datetime.fromtimestamp(times[start_index]).strftime('%H:%M:%S')
+        end_time_str = datetime.fromtimestamp(times[end_index]).strftime('%H:%M:%S')
+
+        segment_dist = sum(dist_array[start_index:end_index])
+        speed_slice = speeds[start_index:end_index + 1]
+        avg_speed_kmh = (sum(speed_slice) / len(speed_slice)) * 3.6 if speed_slice else 0.0
+        cadence_slice = cadences[start_index:end_index + 1]
+        avg_cadence = sum(cadence_slice) / len(cadence_slice) if cadence_slice else 0.0
+
+        results.append({
+            'Typ': state_names[segment['state']],
+            'Start': start_time_str,
+            'Koniec': end_time_str,
+            'Dystans (m)': round(segment_dist, 1),
+            'Średnia prędkość (km/h)': round(avg_speed_kmh, 1),
+            'Średnia kadencja (RPM)': int(round(avg_cadence, 0)) * 2
+        })
+
+    return results

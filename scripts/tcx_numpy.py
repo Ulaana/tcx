@@ -1,13 +1,7 @@
+from datetime import datetime
 import numpy as np
 
 R = 6371000
-
-
-def bbox_np(latitudes, longitudes):
-    min_lat, min_lon = np.min(latitudes), np.min(longitudes)
-    max_lat, max_lon = np.max(latitudes), np.max(longitudes)
-    return (min_lat, min_lon, max_lat, max_lon)
-
 
 def total_distance_np(lats, lons):
     lat_rad = np.radians(lats)
@@ -103,3 +97,86 @@ def perf_eff_np(lats, lons, elevations, heart_rates, times, weight=75.0):
         "Współczynnik wydajności (druga połowa treningu)": round(float(ef_2), 3),
         "Aerobic decoupling": round(float(decoupling), 2)
     }
+
+
+def distances_np(latitudes, longitudes):
+    phi1, phi2 = np.radians(latitudes[:-1]), np.radians(latitudes[1:])
+    delta_phi = np.radians(latitudes[1:] - latitudes[:-1])
+    delta_lambda = np.radians(longitudes[1:] - longitudes[:-1])
+
+    a = np.sin(delta_phi / 2.0) ** 2 + np.cos(phi1) * np.cos(phi2) * np.sin(delta_lambda / 2.0) ** 2
+    c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
+    return R * c
+
+
+def activity_segments_np(latitudes, longitudes, times, cadences, min_duration=5):
+    delta_time = np.diff(times)
+    delta_time[delta_time == 0] = 1.0
+    dist_array = distances_np(latitudes, longitudes)
+    speeds = np.insert(dist_array / delta_time, 0, 0.0)
+
+    states = np.zeros(len(times), dtype=int)
+    walk_mask = ((speeds > 0.5) & (speeds <= 2.2)) | ((cadences > 0) & (cadences < 65))
+    states[walk_mask] = 1
+    run_mask = (speeds > 2.2) & (cadences >= 65)
+    states[run_mask] = 2
+    idle_mask = (speeds > 0.5) & (cadences == 0) & (speeds < 3.0)
+    states[idle_mask] = 0
+
+    changes = np.where(states[:-1] != states[1:])[0] + 1
+    split_indices = np.concatenate(([0], changes, [len(states)]))
+
+    segments = []
+    for i in range(len(split_indices) - 1):
+        start_index = split_indices[i]
+        end_index = split_indices[i + 1]
+        state = states[start_index]
+        segments.append({
+            'state': state,
+            'start_idx': start_index,
+            'end_idx': end_index,
+            'duration': end_index - start_index
+        })
+
+    filtered_segments = []
+    for segment in segments:
+        if segment['duration'] < min_duration and len(filtered_segments) > 0:
+            segment['state'] = filtered_segments[-1]['state']
+        filtered_segments.append(segment)
+
+    final_segments = []
+    for segment in filtered_segments:
+        if not final_segments:
+            final_segments.append(segment)
+        elif final_segments[-1]['state'] == segment['state']:
+            final_segments[-1]['end_idx'] = segment['end_idx']
+            final_segments[-1]['duration'] += segment['duration']
+        else:
+            final_segments.append(segment)
+
+    state_names = {0: "Postój (Idle)", 1: "Chód (Walk)", 2: "Bieg (Run)"}
+    results = []
+
+    for segment in final_segments:
+        start_index = segment['start_idx']
+        end_index = segment['end_idx'] - 1
+        start_time_str = datetime.fromtimestamp(times[start_index]).strftime('%H:%M:%S')
+        end_time_str = datetime.fromtimestamp(times[end_index]).strftime('%H:%M:%S')
+
+        if start_index >= end_index:
+            continue
+
+        segment_dist = np.sum(dist_array[start_index:end_index])
+        avg_speed_kmh = (np.mean(speeds[start_index:end_index + 1])) * 3.6
+        avg_cadence = np.mean(cadences[start_index:end_index + 1])
+
+        results.append({
+            'Typ': state_names[segment['state']],
+            'Start': start_time_str,
+            'Koniec': end_time_str,
+            'Dystans (m)': round(segment_dist, 1),
+            'Średnia prędkość (km/h)': round(avg_speed_kmh, 1),
+            'Średnia kadencja (RPM)': int(round(avg_cadence, 0))*2
+        })
+
+    return results
