@@ -1,0 +1,87 @@
+parser:
+
+ Performance counter stats for 'python np_parser_test.py' (5 runs):
+
+       15383747185      cache-references:u                                                      ( +-  0.55% )
+         588299467      cache-misses:u                   #    3.82% of all cache refs           ( +-  4.52% )
+       73841144258      L1-dcache-loads:u                                                       ( +-  0.12% )
+        3449543322      L1-dcache-load-misses:u          #    4.67% of all L1-dcache accesses   ( +-  0.76% )
+
+             72.85 +- 4.06 seconds time elapsed  ( +-  5.58% )
+
+1 iteracja:
+
+ Performance counter stats for 'python np_test.py' (5 runs):
+
+       15365020029      cache-references:u                                                      ( +-  0.59% )
+         667687518      cache-misses:u                   #    4.35% of all cache refs           ( +-  7.88% )
+       74620931643      L1-dcache-loads:u                                                       ( +-  0.22% )
+        3422199199      L1-dcache-load-misses:u          #    4.59% of all L1-dcache accesses   ( +-  1.13% )
+
+             75.37 +- 3.43 seconds time elapsed  ( +-  4.56% )
+
+2 iteracje:
+
+ Performance counter stats for 'python np_test.py' (5 runs):
+
+       15407442290      cache-references:u                                                      ( +-  0.39% )
+         664411546      cache-misses:u                   #    4.31% of all cache refs           ( +-  5.61% )
+       75457441795      L1-dcache-loads:u                                                       ( +-  0.22% )
+        3473905074      L1-dcache-load-misses:u          #    4.60% of all L1-dcache accesses   ( +-  1.16% )
+
+             72.44 +- 2.41 seconds time elapsed  ( +-  3.33% )
+
+3 iteracje:
+
+ Performance counter stats for 'python np_test.py' (5 runs):
+
+       15891242071      cache-references:u                                                      ( +-  1.02% )
+         881247564      cache-misses:u                   #    5.55% of all cache refs           ( +- 13.09% )
+       76575067181      L1-dcache-loads:u                                                       ( +-  0.26% )
+        3549737683      L1-dcache-load-misses:u          #    4.64% of all L1-dcache accesses   ( +-  1.17% )
+
+             88.72 +- 6.77 seconds time elapsed  ( +-  7.63% )
+
+parser:
+
+ Performance counter stats for 'python py_parser_test.py' (5 runs):
+
+       16859884106      cache-references:u                                                      ( +-  1.04% )
+         991360694      cache-misses:u                   #    5.88% of all cache refs           ( +- 12.07% )
+       81444900282      L1-dcache-loads:u                                                       ( +-  0.30% )
+        3971423052      L1-dcache-load-misses:u          #    4.88% of all L1-dcache accesses   ( +-  0.89% )
+
+             67.74 +- 5.66 seconds time elapsed  ( +-  8.36% )
+
+1 iteracja:
+
+ Performance counter stats for 'python py_test.py' (5 runs):
+
+       17181186318      cache-references:u                                                      ( +-  1.06% )
+        1163388609      cache-misses:u                   #    6.77% of all cache refs           ( +- 11.05% )
+       98602684937      L1-dcache-loads:u                                                       ( +-  0.25% )
+        3946879599      L1-dcache-load-misses:u          #    4.00% of all L1-dcache accesses   ( +-  1.11% )
+
+             84.54 +- 3.31 seconds time elapsed  ( +-  3.92% )
+
+2 iteracje:
+
+ Performance counter stats for 'python py_test.py' (5 runs):
+
+       17426210045      cache-references:u                                                      ( +-  0.70% )
+        1050655100      cache-misses:u                   #    6.03% of all cache refs           ( +- 11.07% )
+      115546157620      L1-dcache-loads:u                                                       ( +-  0.13% )
+        4136171246      L1-dcache-load-misses:u          #    3.58% of all L1-dcache accesses   ( +-  0.44% )
+
+             84.56 +- 2.37 seconds time elapsed  ( +-  2.81% )
+
+3 iteracje:
+
+ Performance counter stats for 'python py_test.py' (5 runs):
+
+       17909673626      cache-references:u                                                      ( +-  1.81% )
+        1187866255      cache-misses:u                   #    6.63% of all cache refs           ( +- 16.51% )
+      132712704629      L1-dcache-loads:u                                                       ( +-  0.33% )
+        4270820696      L1-dcache-load-misses:u          #    3.22% of all L1-dcache accesses   ( +-  1.03% )
+
+             91.63 +- 4.43 seconds time elapsed  ( +-  4.83% )
