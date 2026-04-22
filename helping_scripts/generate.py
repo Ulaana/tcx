@@ -3,7 +3,7 @@ import math
 import random
 
 
-def generate(filename="data/plik_1000000.tcx", num_points=100_000):
+def generate(filename="../data/plik_1000000.tcx", num_points=100_000):
     start_time = datetime.datetime.now(datetime.timezone.utc)
     center_lat = 52.0
     center_lon = 19.0
@@ -11,7 +11,14 @@ def generate(filename="data/plik_1000000.tcx", num_points=100_000):
 
     with open(filename, "w", encoding="utf-8") as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-        f.write('<TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2">\n')
+        f.write('<TrainingCenterDatabase\n')
+        f.write('xsi:schemaLocation="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"\n')
+        f.write('  xmlns:ns5="http://www.garmin.com/xmlschemas/ActivityGoals/v1"\n')
+        f.write('  xmlns:ns3="http://www.garmin.com/xmlschemas/ActivityExtension/v2"\n')
+        f.write('  xmlns:ns2="http://www.garmin.com/xmlschemas/UserProfile/v2"\n')
+        f.write('  xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"\n')
+        f.write('  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n')
+        f.write('  xmlns:ns4="http://www.garmin.com/xmlschemas/ProfileExtension/v1">\n')
         f.write('  <Activities>\n')
         f.write('    <Activity Sport="Biking">\n')
         f.write(f'      <Id>{start_time.strftime("%Y-%m-%dT%H:%M:%SZ")}</Id>\n')
@@ -37,8 +44,14 @@ def generate(filename="data/plik_1000000.tcx", num_points=100_000):
               <LongitudeDegrees>{lon:.6f}</LongitudeDegrees>
             </Position>
             <AltitudeMeters>{ele:.1f}</AltitudeMeters>
-            <HeartRateBpm><Value>{hr}</Value></HeartRateBpm>
-            <Cadence>{cadence}</Cadence>
+            <HeartRateBpm>
+              <Value>{hr}</Value>
+            </HeartRateBpm>
+            <Extensions>
+              <ns3:TPX>
+                <ns3:RunCadence>{cadence}</ns3:RunCadence>
+              </ns3:TPX>
+            </Extensions>
           </Trackpoint>\n"""
 
             f.write(trackpoint)
@@ -56,4 +69,4 @@ def generate(filename="data/plik_1000000.tcx", num_points=100_000):
 
 
 if __name__ == "__main__":
-    generate(num_points=10_000_000)
+    generate(num_points=1000000)
