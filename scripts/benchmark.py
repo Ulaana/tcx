@@ -6,7 +6,7 @@ from tcx_numpy import *
 from tcx_parser import *
 
 
-def benchmark(files, output_file="../benchmark.json"):
+def benchmark(files, output_file="../results/benchmark.json"):
     results = []
 
     for file in files:
