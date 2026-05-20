@@ -1,0 +1,49 @@
+{
+    "plik": "../data/plik_1000000.tcx",
+    "punkty": 1000000,
+    "iteracje_pomiarowe": 50,
+    "wyniki": [
+        {
+            "funkcja": "total_distance",
+            "czas_python_s": 1.1208581579988823,
+            "czas_numpy_s": 0.11111166600137949,
+            "przyspieszenie": 10.087673044025516
+        },
+        {
+            "funkcja": "elevation_gain",
+            "czas_python_s": 0.1615816759993322,
+            "czas_numpy_s": 0.011599196000024676,
+            "przyspieszenie": 13.93042034973704
+        },
+        {
+            "funkcja": "avg_hr",
+            "czas_python_s": 0.14057301199994982,
+            "czas_numpy_s": 0.007487099999561906,
+            "przyspieszenie": 18.77536189020785
+        },
+        {
+            "funkcja": "hr_zones",
+            "czas_python_s": 0.10799400599906221,
+            "czas_numpy_s": 0.005040576001629233,
+            "przyspieszenie": 21.42493357190845
+        },
+        {
+            "funkcja": "elevation_hr",
+            "czas_python_s": 0.24035060800146313,
+            "czas_numpy_s": 0.027678972000721842,
+            "przyspieszenie": 8.683509199517779
+        },
+        {
+            "funkcja": "perf_eff",
+            "czas_python_s": 3.247220842000097,
+            "czas_numpy_s": 0.20244407600024716,
+            "przyspieszenie": 16.040088236497137
+        },
+        {
+            "funkcja": "activity_segments",
+            "czas_python_s": 2.124340966001619,
+            "czas_numpy_s": 0.23071638200199232,
+            "przyspieszenie": 9.207586160844333
+        }
+    ]
+}

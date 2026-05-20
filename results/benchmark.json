@@ -1,0 +1,37 @@
+[
+    {
+        "plik": "../data/plik_1000.tcx",
+        "punkty": 1000,
+        "czas_python": 0.004935300094075501,
+        "czas_numpy": 0.001909300102852285,
+        "przyspieszenie": 2.5848739476328024
+    },
+    {
+        "plik": "../data/plik_10000.tcx",
+        "punkty": 10000,
+        "czas_python": 0.04339480004273355,
+        "czas_numpy": 0.002753300010226667,
+        "przyspieszenie": 15.76101401283947
+    },
+    {
+        "plik": "../data/plik_100000.tcx",
+        "punkty": 100000,
+        "czas_python": 0.5128970999503508,
+        "czas_numpy": 0.04561589995864779,
+        "przyspieszenie": 11.243822886653728
+    },
+    {
+        "plik": "../data/plik_500000.tcx",
+        "punkty": 500000,
+        "czas_python": 3.1654239000054076,
+        "czas_numpy": 0.2537989999400452,
+        "przyspieszenie": 12.472168530030356
+    },
+    {
+        "plik": "../data/plik_1000000.tcx",
+        "punkty": 1000000,
+        "czas_python": 7.01092220004648,
+        "czas_numpy": 0.5277051000157371,
+        "przyspieszenie": 13.285682097515073
+    }
+]
