@@ -189,8 +189,8 @@ def activity_segments(latitudes, longitudes, times, cadences, min_duration=5):
     n = len(times)
     dist = []
     for i in range(n - 1):
-        distance = distance(latitudes[i], longitudes[i], latitudes[i + 1], longitudes[i + 1])
-        dist.append(distance)
+        distances = distance(latitudes[i], longitudes[i], latitudes[i + 1], longitudes[i + 1])
+        dist.append(distances)
     delta_time = []
     for i in range(n - 1):
         dt = times[i + 1] - times[i]
