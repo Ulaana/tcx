@@ -55,6 +55,8 @@ if __name__ == "__main__":
         "../data/plik_10000.tcx",
         "../data/plik_100000.tcx",
         "../data/plik_500000.tcx",
-        "../data/plik_1000000.tcx"
+        "../data/plik_1000000.tcx",
+        "../data/plik_2000000.tcx",
+        "../data/plik_3000000.tcx"
     ]
     benchmark(files)

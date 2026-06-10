@@ -9,7 +9,7 @@ def plot(file):
     results.sort(key=lambda x: x["punkty"])
 
     sizes = [r["punkty"] for r in results]
-    #przyspieszenie = [r["przyspieszenie"] for r in results]
+    przyspieszenie = [r["przyspieszenie"] for r in results]
     python_times = [r["czas_python"] for r in results]
     numpy_times = [r["czas_numpy"] for r in results]
 
@@ -22,7 +22,7 @@ def plot(file):
     plt.ylabel('Czas wykonania operacji analitycznych (s)', fontsize=12)
     #plt.ylabel('Przyspieszenie', fontsize=12)
     plt.xscale('log')
-    plt.xticks(sizes, [f"{s:,}".replace(',', ' ') for s in sizes])
+    plt.xticks(sizes, [f"{s:,}".replace(',', ' ') for s in sizes], rotation=45, ha='right')
     plt.grid(True, which="both", linestyle='--', alpha=0.6)
     plt.legend(fontsize=12, loc='upper left')
     plt.tight_layout()

@@ -18,7 +18,6 @@ def distance_np(lat1, lon1, lat2, lon2):
     c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
     return R * c
 
-
 def total_distance_np(latitudes, longitudes):
     """
     Oblicza całkowity pokonany dystans.
@@ -55,7 +54,6 @@ def hr_zones_np(heart_rates, hr_max=185):
     bins = [hr_max * 0.5, hr_max * 0.6, hr_max * 0.7, hr_max * 0.8, hr_max * 0.9, np.inf]
     counts, _ = np.histogram(heart_rates, bins=bins)
     return counts.tolist()
-
 
 def elevation_hr_np(elevations, heart_rates):
     """
@@ -127,7 +125,6 @@ def perf_eff_np(latitudes, longitudes, elevations, heart_rates, times, weight=75
         "Aerobic decoupling": round(float(decoupling), 2)
     }
 
-
 def activity_segments_np(latitudes, longitudes, times, cadences, min_duration=5):
     """
     Segmentacja aktywności na podstawie parametrów kinetycznych.
@@ -188,12 +185,12 @@ def activity_segments_np(latitudes, longitudes, times, cadences, min_duration=5)
     for segment in final_segments:
         start_index = segment['start_idx']
         end_index = segment['end_idx'] - 1
-        start_time_str = datetime.fromtimestamp(times[start_index]).strftime('%H:%M:%S')
-        end_time_str = datetime.fromtimestamp(times[end_index]).strftime('%H:%M:%S')
 
         if start_index >= end_index:
             continue
 
+        start_time_str = datetime.fromtimestamp(times[start_index]).strftime('%H:%M:%S')
+        end_time_str = datetime.fromtimestamp(times[end_index]).strftime('%H:%M:%S')
         segment_dist = np.sum(dist[start_index:end_index])
         avg_speed_kmh = (np.mean(speeds[start_index:end_index + 1])) * 3.6
         avg_cadence = np.mean(cadences[start_index:end_index + 1])

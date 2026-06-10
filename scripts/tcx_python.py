@@ -81,7 +81,6 @@ def hr_zones(heart_rates, hr_max=185):
             zones[0] += 1
     return zones
 
-
 def elevation_hr(elevations, heart_rates):
     """
     Koreluje dane z pulsometru z profilem wysokościowym trasy.
@@ -177,7 +176,6 @@ def perf_eff(latitudes, longitudes, elevations, heart_rates, times, weight=75.0)
         "Współczynnik wydajności (druga połowa treningu)": round(ef_2, 3),
         "Aerobic decoupling": round(decoupling, 2)
     }
-
 
 def activity_segments(latitudes, longitudes, times, cadences, min_duration=5):
     """

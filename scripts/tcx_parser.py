@@ -3,6 +3,7 @@ from datetime import datetime
 import numpy as np
 
 
+
 def parser_py(file):
     ns = {
         'tcx': 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2',
